@@ -1,0 +1,9 @@
+<%# The marks the viewer may see on the issue (her own with remove and the note as a tooltip, others' shared ones) and
+    Märk: each mark one pill (mark | the note as an icon | x), then core's add icon to mark. Drawn by the server where
+    it stands: in the issue's head after the author line (Hooks#view_issues_show_author_after), else in the tags'
+    section (head: false). %>
+<% head = local_assigns.fetch(:head, false) %>
+<div class="<%= head ? 'gk-tags-marks gk-tags-head-marks' : 'gk-tags-marks' %>">
+  <% GkTags::Personal.on(issue).each do |m| %><%= gk_tags_mark_pill(m, remove: gk_tags_unmark_path(issue, tagging_id: m.id)) %> <% end %>
+  <%= render partial: 'gk_tags_tags/mark_form', locals: { issue: issue, journal: nil } %>
+</div>

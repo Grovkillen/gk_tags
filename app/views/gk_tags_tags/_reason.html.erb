@@ -1,0 +1,17 @@
+<%# The reason of the place tags.lifecycle in gk_records in an action's popover box on the tag's page: records'
+    field as a text area, which knows whether the place asks for it (off, optional or required) and folds an optional
+    one into its own link, so a label of our own only when the reason is required; without records a plain text area
+    with its label. The box Taggen's Save has its reason in gui_stuff's button. %>
+<% off = defined?(GkRecords::Reasons) && GkRecords::Reasons.off?('tags.lifecycle') %>
+<% req = defined?(GkRecords::Reasons) && GkRecords::Reasons.required?('tags.lifecycle') %>
+<% unless off %>
+<p>
+  <% if respond_to?(:gk_records_reason_field) %>
+    <% if req %><label for="<%= id %>"><%= l(:field_gk_tags_reason) %> <span class="required">*</span></label><% end %>
+    <%= gk_records_reason_field('tags.lifecycle', name: 'tag[reason]', value: value, id: id, size: 40, area: true, rows: 2, chips: false) %>
+  <% else %>
+    <label for="<%= id %>"><%= l(:field_gk_tags_reason) %></label>
+    <%= text_area_tag('tag[reason]', value, id: id, rows: 2, cols: 40) %>
+  <% end %>
+</p>
+<% end %>

@@ -1,0 +1,62 @@
+<%# gk_tags: first the gate's line, as core's own warning line (GK GUI Stuff is the one not there, so nothing of it
+    can draw the line): GK GUI Stuff is missing, it is too old (with the version required), or it is installed in the
+    right version but not active (with a link to its own settings page); then Om pluginet; with GK GUI Stuff the
+    handles, when a free tag becomes established, the focus list's size, which statuses count as waiting on the page
+    Fokus, and the change log, which GK GUI Stuff draws (gk_gui_stuff_changelog). Without it nothing else is drawn, and the stored settings go back as hidden fields,
+    because core's Save on this page writes what is posted over what is stored (an empty hash posts nothing, an empty
+    list comes back as [""], every other value as text) %>
+<% plugin = Redmine::Plugin.find(:gk_tags) %>
+<% gui_closed = GkTags.gui_closed %>
+<% gui = gui_closed.nil? %>
+<% if gui_closed == :missing %><p class="warning"><%= l(:text_gk_tags_gui_stuff_missing) %></p>
+<% elsif gui_closed == :old %><p class="warning"><%= l(:text_gk_tags_gui_stuff_required, version: GkTags::GUI_STUFF_MIN) %></p>
+<% elsif gui_closed == :inactive %><p class="warning"><%= l(:text_gk_tags_gui_stuff_inactive) %> <%= link_to l(:label_gk_tags_gui_stuff_settings), plugin_settings_path('gk_gui_stuff') %></p><% end %>
+<fieldset class="box"><legend><%= l(:label_gk_tags_about) %></legend>
+  <div><strong><%= plugin.name %></strong> <%= plugin.version %></div>
+  <div><%= l(:text_gk_tags_description) %></div>
+</fieldset>
+<% unless gui %>
+  <% keep = nil %>
+  <% keep = lambda do |name, value|
+       case value
+       when Hash then value.flat_map { |k, v| keep.call("#{name}[#{k}]", v) }
+       when Array then value.empty? ? [hidden_field_tag("#{name}[]", '', id: nil)] : value.map { |v| hidden_field_tag("#{name}[]", v.to_s, id: nil) }
+       else [hidden_field_tag(name, value.to_s, id: nil)]
+       end
+     end %>
+  <%= safe_join((settings.is_a?(Hash) ? settings : {}).flat_map { |k, v| keep.call("settings[#{k}]", v) }) %>
+<% else %>
+<fieldset class="box tabular"><legend><%= l(:label_gk_tags_tags) %></legend>
+  <p><label for="settings_min_length"><%= l(:field_gk_tags_min_length) %></label>
+    <%= number_field_tag 'settings[min_length]', settings['min_length'], min: 1, max: 20, id: 'settings_min_length' %></p>
+  <p><label for="settings_establish_users"><%= l(:field_gk_tags_establish_users) %></label>
+    <%= number_field_tag 'settings[establish_users]', settings['establish_users'], min: 1, id: 'settings_establish_users' %>
+    <em class="info"><%= l(:text_gk_tags_establish) %></em></p>
+  <p><label for="settings_establish_objects"><%= l(:field_gk_tags_establish_objects) %></label>
+    <%= number_field_tag 'settings[establish_objects]', settings['establish_objects'], min: 1, id: 'settings_establish_objects' %></p>
+</fieldset>
+<%# The sidebar box's two numbers are values of the appearance setting tags.sidebar (Administration, Appearance);
+    each project's own number (its tab Taggar) is kept as it is when this is saved %>
+<% (settings['sidebar_top_projects'] || {}).each do |pid, n| %><%= hidden_field_tag "settings[sidebar_top_projects][#{pid}]", n %><% end %>
+<fieldset class="box tabular"><legend><%= l(:label_gk_tags_focus) %></legend>
+  <p><label for="settings_focus_max"><%= l(:field_gk_tags_focus_max) %></label>
+    <%= number_field_tag 'settings[focus_max]', settings['focus_max'], min: 1, max: 10, id: 'settings_focus_max' %></p>
+  <%# Tidigare fokus, the last issues or the last days, and the people responsibility that makes someone a
+      person's manager %>
+  <p><label for="settings_focus_history_issues"><%= l(:field_gk_tags_focus_history_issues) %></label>
+    <%= number_field_tag 'settings[focus_history_issues]', settings['focus_history_issues'].presence || 10, min: 1, max: 1000, id: 'settings_focus_history_issues' %></p>
+  <p><label for="settings_focus_history_days"><%= l(:field_gk_tags_focus_history_days) %></label>
+    <%= number_field_tag 'settings[focus_history_days]', settings['focus_history_days'].presence || 30, min: 1, max: 3650, id: 'settings_focus_history_days' %></p>
+  <p><label for="settings_manager_responsibility"><%= l(:field_gk_tags_manager_responsibility) %></label>
+    <% responsibilities = defined?(GkPeople::Responsibilities) && GkPeople::Responsibilities.ready? ? GkPeopleResponsibility.active.sorted.map { |r| [r.name, r.key] } : [] %>
+    <%= select_tag 'settings[manager_responsibility]', options_for_select([['', '']] + responsibilities, settings['manager_responsibility'].to_s), id: 'settings_manager_responsibility' %>
+    <em class="info"><%= l(:text_gk_tags_manager_responsibility) %></em></p>
+  <p><label><%= l(:field_gk_tags_waiting_statuses) %></label>
+    <%= hidden_field_tag 'settings[waiting_status_ids][]', '', id: nil %>
+    <% IssueStatus.sorted.each do |s| %>
+      <label class="inline"><%= check_box_tag 'settings[waiting_status_ids][]', s.id, Array(settings['waiting_status_ids']).map(&:to_s).include?(s.id.to_s), id: nil %> <%= s.name %></label>
+    <% end %>
+    <em class="info"><%= l(:text_gk_tags_waiting_statuses) %></em></p>
+</fieldset>
+<%= gk_gui_stuff_changelog(:gk_tags) %>
+<% end %>

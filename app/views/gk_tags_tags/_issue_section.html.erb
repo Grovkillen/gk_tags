@@ -1,0 +1,18 @@
+<%# On the issue page: its tags, with their number in the heading, as a section gui_stuff's collapse_all folds, folded
+    by default. The marks the viewer may see and the add icon to mark stand in the issue's head after the author line,
+    drawn there by the server through the hook core_stuff adds after it (GkTags::Hooks.head_marks?), so that they show
+    while the section is folded; where that hook is not drawn they stand here in the section. Focus is the button
+    among the issue's actions, not a line here. Marks only when their declared function is on. %>
+<% tags = GkTags::Access.view?(issue) ? issue.gk_tags_current_tags : [] %>
+<% personal_here = GkTags::Access.personal?(issue) && !GkTags::Hooks.head_marks? %>
+<% if tags.any? || personal_here %>
+<%# its own line, which gui_stuff's collapse_all takes away by its key when it moves the section out of the attributes %>
+<hr data-gk-gui-stuff-section-rule="tags" />
+<div class="gk-tags-issue" id="gk-tags-issue" data-gk-gui-stuff-section="tags" data-gk-gui-stuff-section-default="collapsed">
+  <p><strong data-gk-gui-stuff-section-label><%= l(:label_gk_tags_tags_count, count: tags.size) %></strong>
+    <% if tags.any? %><%= safe_join(tags.map { |t| gk_tags_pill(t) }, ' ') %><% else %><span class="gk-tags-muted"><%= l(:label_none) %></span><% end %></p>
+  <% if personal_here && GkTags::Hooks.marks?(issue) %>
+    <%= render partial: 'gk_tags_tags/head_marks', locals: { issue: issue, head: false } %>
+  <% end %>
+</div>
+<% end %>

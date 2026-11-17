@@ -1,0 +1,18 @@
+<%# A type: its fields and rules; retire or restore it. Each change is an event on the type in records, with a
+    reason. Both forms say autocomplete off, so that a browser that puts a form's fields back when the page is read
+    again leaves them as the server drew them. %>
+<div class="contextual"><%= link_to l(:label_gk_tags_tags_of_type), gk_tags_tags_path(type: @type.key) %></div>
+<h2><%= link_to l(:label_gk_tags_tags), gk_tags_tags_path %> &#187; <%= link_to l(:label_gk_tags_types), gk_tags_types_path %> &#187; <%= gk_tags_type_badge(@type) %></h2>
+<% unless @type.active %><p class="warning"><%= l(:text_gk_tags_type_is_retired) %></p><% end %>
+<%= form_tag gk_tags_type_path(@type), method: :patch, autocomplete: 'off' do %>
+  <%= render partial: 'gk_tags_types/form', locals: { type: @type } %>
+  <p><%= submit_tag l(:button_save) %></p>
+<% end %>
+<fieldset class="box" id="gk-tags-type-retire"><legend><%= l(@type.active ? :button_gk_tags_retire : :button_gk_tags_restore) %></legend>
+<%= form_tag retire_gk_tags_type_path(@type), method: :post, autocomplete: 'off' do %>
+  <% if @type.active %><%= respond_to?(:gk_records_reason_field) ? gk_records_reason_field('tags.lifecycle', size: 30, placeholder: l(:field_gk_tags_reason)) : text_field_tag('reason', '', size: 30, placeholder: l(:field_gk_tags_reason)) %><% end %>
+  <%= submit_tag l(@type.active ? :button_gk_tags_retire : :button_gk_tags_restore), name: nil %>
+  <em class="info"><%= l(:text_gk_tags_type_retire) %></em>
+<% end %>
+</fieldset>
+<%= gk_records_list(@type) if respond_to?(:gk_records_list) && defined?(GkRecords::Targets) && GkRecords::Targets.for_object(@type) %>

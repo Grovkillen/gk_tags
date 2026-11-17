@@ -1,0 +1,29 @@
+<%# Administration > Taggar > Typer: every type with its rules and how many tags it has; a retired type dimmed.
+    A type is never deleted. %>
+<div class="contextual">
+  <%= link_to sprite_icon('add', l(:label_gk_tags_type_new)), new_gk_tags_type_path, class: 'icon icon-add' %>
+  <%= link_to l(:label_gk_tags_tags), gk_tags_tags_path %>
+</div>
+<h2><%= link_to l(:label_gk_tags_tags), gk_tags_tags_path %> &#187; <%= l(:label_gk_tags_types) %></h2>
+<p class="gk-tags-intro"><%= l(:text_gk_tags_types_intro) %></p>
+<% if @types.empty? %><p class="nodata"><%= l(:label_no_data) %></p><% else %>
+<table class="list gk-tags-admin" data-gk-gui-rowmenu>
+  <thead><tr><th><%= l(:label_gk_tags_type) %></th><th><%= l(:field_gk_tags_type_key) %></th><th><%= l(:field_gk_tags_namespace) %></th>
+    <th><%= l(:label_gk_tags_type_rules) %></th><th><%= l(:label_gk_tags_tags) %></th><th></th></tr></thead>
+  <tbody>
+  <% @types.each do |t| %>
+    <tr class="<%= t.active ? '' : 'gk-tags-status-retired' %>" data-gk-gui-row-menu-label="<%= t.name %>">
+      <td class="name"><%= gk_tags_type_badge(t) %><% unless t.active %> <span class="gk-tags-muted">(<%= l(:label_gk_tags_status_retired) %>)</span><% end %></td>
+      <td class="key"><code><%= t.key %></code></td>
+      <td class="namespace"><%= t.namespace.present? ? content_tag(:code, "#{t.namespace}:") : '' %></td>
+      <td class="text"><%= gk_tags_type_rules(t) %></td>
+      <td class="count"><%= link_to @counts[t.id].to_i, gk_tags_tags_path(type: t.key) %></td>
+      <%# the pencil stays in the row, Avveckla or Återställ is in gui_stuff's row menu %>
+      <td class="buttons"><%= link_to sprite_icon('edit', l(:button_edit)), edit_gk_tags_type_path(t), class: 'icon icon-edit', data: { gk_gui_row_action: 'keep' } %>
+        <%= link_to l(t.active ? :button_gk_tags_retire : :button_gk_tags_restore), edit_gk_tags_type_path(t, anchor: 'gk-tags-type-retire'), data: { gk_gui_row_action: true } %></td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>
+<%= gk_gui_stuff_row_menu %>
+<% end %>

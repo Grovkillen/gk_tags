@@ -1,0 +1,44 @@
+<%# Fokus as three tabs: Mitt fokus (one's own list in priority and due date order, Ta bort, and the sharing box),
+    Tidigare fokus (one's own history, the last issues or the last days) and Fokus i min grupp (what others shared with
+    the viewer: the current focus and, where shared, the history; in a project only its members). Focus is not ranked.
+    An issue the viewer may not see is counted, not named. %>
+<% content_for :header_tags do %><%= stylesheet_link_tag 'gk_tags', plugin: 'gk_tags' %><% end %>
+<% path = ->(opts = {}) { @project ? gk_tags_project_focus_path(@project, opts) : gk_tags_focus_path(opts) } %>
+<h2><%= l(:label_gk_tags_focus_page) %><% if @project %> &#187; <%= @project.name %><% end %></h2>
+<div class="tabs">
+  <ul>
+    <% [%w[mine label_gk_tags_my_focus], %w[history label_gk_tags_focus_history], %w[group label_gk_tags_focus_group]].each do |name, label| %>
+      <li><%= link_to l(label), path.call(tab: name), class: (@tab == name ? 'selected' : nil) %></li>
+    <% end %>
+  </ul>
+</div>
+<div class="tab-content gk-tags-focus-tab">
+<% if @tab == 'mine' %>
+  <p class="gk-tags-intro"><%= l(:text_gk_tags_focus_mine, max: GkTags::Focus.max) %></p>
+  <%= render partial: 'gk_tags_personal/focus_items', locals: { items: @items, owner: User.current, own: true } %>
+  <%= render partial: 'gk_tags_personal/focus_share', locals: { shares: @shares, choices: @choices } %>
+<% elsif @tab == 'history' %>
+  <p class="gk-tags-intro"><%= l(:text_gk_tags_focus_history) %></p>
+  <%= form_tag path.call, method: :get, class: 'gk-tags-history-mode' do %>
+    <%= hidden_field_tag 'tab', 'history', id: nil %>
+    <label><%= radio_button_tag 'mode', 'issues', @mode == 'issues', id: 'gk-tags-mode-issues' %> <%= l(:label_gk_tags_history_issues) %></label>
+    <label><%= radio_button_tag 'mode', 'days', @mode == 'days', id: 'gk-tags-mode-days' %> <%= l(:label_gk_tags_history_days) %></label>
+    <label><%= l(:field_gk_tags_history_n) %> <%= number_field_tag 'n', @n, min: 1, max: 1000, size: 4, id: 'gk-tags-history-n' %></label>
+    <%= submit_tag l(:button_apply), name: nil %>
+  <% end %>
+  <%= render partial: 'gk_tags_personal/focus_history', locals: { rows: @rows } %>
+<% else %>
+  <p class="gk-tags-intro"><%= l(:text_gk_tags_focus_group) %></p>
+  <% if @board.empty? %><p class="nodata"><%= l(:label_no_data) %></p><% end %>
+  <% @board.each do |row| %>
+    <h3 class="gk-tags-person"><%= gk_tags_person(row[:user]) %></h3>
+    <%= render partial: 'gk_tags_personal/focus_items', locals: { items: row[:items], owner: row[:user], own: false } %>
+    <% if row[:history] %>
+      <details class="gk-tags-their-history">
+        <summary><%= l(:label_gk_tags_focus_history) %></summary>
+        <%= render partial: 'gk_tags_personal/focus_history', locals: { rows: GkTags::FocusHistory.rows(row[:user]) } %>
+      </details>
+    <% end %>
+  <% end %>
+<% end %>
+</div>

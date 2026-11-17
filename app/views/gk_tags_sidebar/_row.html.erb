@@ -1,0 +1,15 @@
+<% on = chosen.include?(tag.id) %>
+<li class="gk-tags-sb-row <%= tag.pill_classes %>" data-gk-tags-n="<%= n %>" data-gk-tags-name="<%= tag.ref %>">
+  <%# one pill in two links: the whole pill with the count is a button that filters the list, the arrow last
+      leads to the tag's page; chosen in the filter, the pill is not split, without the count, and its x is the link to
+      the list without the tag. The row has the classes of the tag's category or marking, so
+      form D's bar takes its tone. %>
+  <% if on %>
+    <%= gk_gui_stuff_pill("##{tag.ref}", role: tag.pill_role, chosen: true, remove: link.call(tag), remove_method: :get,
+                                         remove_title: l(:text_gk_tags_sidebar_unfilter, tag: tag.ref), html: { class: 'gk-tags-sb-pill' }) %>
+  <% else %>
+    <%= gk_gui_stuff_pill("##{tag.ref}", role: tag.pill_role, href: link.call(tag), href_title: l(:text_gk_tags_sidebar_filter, tag: tag.ref),
+                                         href_html: { role: 'button', 'aria-pressed': 'false' }, part_href: gk_tags_page_path(tag), part_title: l(:text_gk_tags_pill_page),
+                                         count: n, html: { class: 'gk-tags-sb-pill' }) %>
+  <% end %>
+</li>

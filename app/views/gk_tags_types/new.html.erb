@@ -1,0 +1,6 @@
+<%# A new type %>
+<h2><%= link_to l(:label_gk_tags_tags), gk_tags_tags_path %> &#187; <%= link_to l(:label_gk_tags_types), gk_tags_types_path %> &#187; <%= l(:label_gk_tags_type_new) %></h2>
+<%= form_tag gk_tags_types_path, method: :post, autocomplete: 'off' do %>
+  <%= render partial: 'gk_tags_types/form', locals: { type: @type } %>
+  <p><%= submit_tag l(:button_create) %></p>
+<% end %>

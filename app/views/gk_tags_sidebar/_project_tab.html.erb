@@ -1,0 +1,12 @@
+<%# The tab Taggar in a project's settings (GkTags::SidebarProjectTab): the sidebar box's number per type %>
+<% own = (GkTags.setting('sidebar_top_projects', {}) || {})[@project.id.to_s].to_i %>
+<%= form_tag(project_gk_tags_sidebar_path(@project), method: :post) do %>
+  <div class="box tabular">
+    <p>
+      <label for="gk_tags_sidebar_top"><%= l(:field_gk_tags_sidebar_top) %></label>
+      <%= number_field_tag 'sidebar_top', (own.positive? ? own : ''), min: 0, max: 100, id: 'gk_tags_sidebar_top', size: 4 %>
+      <em class="info"><%= l(:text_gk_tags_sidebar_top_project, count: GkTags::Sidebar.top) %></em>
+    </p>
+  </div>
+  <%= submit_tag l(:button_save) %>
+<% end %>

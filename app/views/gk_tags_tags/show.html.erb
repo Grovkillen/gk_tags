@@ -1,0 +1,87 @@
+<%# A tag's own page, built like an issue's: the heading with the status as a badge, a head in core's div.issue with
+    the name, who made it, the attributes (status, type, colour, path, aliases, children and how many of each kind
+    bear the tag) and the description; then what bears the tag, one of core's collapsible fieldsets per kind with the
+    count in the legend. Only what the viewer may see is listed. %>
+<% content_for :header_tags do %><%= stylesheet_link_tag 'gk_tags', plugin: 'gk_tags' %><% end %>
+<% if User.current.admin? %><div class="contextual"><%= link_to sprite_icon('edit', l(:button_edit)), edit_gk_tags_tag_path(@tag), class: 'icon icon-edit' %></div><% end %>
+<% in_list = gk_tags_issues_path(@tag) %>
+<% kinds = [[:issues, l(:label_issue_plural), @issues.size]] + @objects.map { |entry, list| ["object-#{entry.key}", entry.label_text, list.size] } %>
+<% row = lambda do |css, label, value|
+     content_tag('div', content_tag('div', "#{label}:", class: 'label') + content_tag('div', value, class: 'value'), class: "#{css} attribute")
+   end %>
+<% creator = @tag.created_by_id && User.find_by(id: @tag.created_by_id) %>
+
+<h2 class="inline-block"><%= gk_tags_pill(@tag, split: false) %></h2>
+<span class="badge gk-heading-badge <%= %w[merged retired].include?(@tag.status) ? 'badge-status-locked' : 'badge-status-open' %> gk-tags-tag-status-<%= @tag.status %>"><%= l("label_gk_tags_status_#{@tag.status}") %></span>
+
+<div class="issue details gk-tags-head">
+  <div class="subject"><div><h3><%= @tag.label %></h3></div></div>
+  <p class="author">
+    <% if creator %><%= authoring @tag.created_at, creator %>.<% end %>
+    <% if @tag.created_at && @tag.updated_at && @tag.updated_at > @tag.created_at %><%= l(:label_updated_time, time_tag(@tag.updated_at)).html_safe %>.<% end %>
+  </p>
+
+  <div class="attributes">
+    <div class="splitcontent">
+      <div class="splitcontentleft">
+        <%= row.call('status', l(:field_status), l("label_gk_tags_status_#{@tag.status}")) %>
+        <%= row.call('gk-tags-type', l(:label_gk_tags_type), @tag.type ? gk_tags_type_badge(@tag.type) : l(:label_gk_tags_untyped)) %>
+        <% if @tag.marking.present? %>
+          <%= row.call('gk-tags-marking', l(:field_gk_tags_marking), content_tag('span', l("label_gk_tags_marking_#{@tag.marking}"), class: "gk-tags-type #{@tag.pill_classes}")) %>
+        <% end %>
+        <% if @tag.parent_id %>
+          <%= row.call('gk-tags-path', l(:label_gk_tags_path), safe_join(@tag.ancestors.reverse.map { |a| link_to(a.label, gk_tags_page_path(a)) } + [@tag.label], ' / ')) %>
+        <% end %>
+        <% if (al = @tag.aliases.reject(&:deprecated)).any? %>
+          <%= row.call('gk-tags-aliases', l(:label_gk_tags_aliases), al.map { |a| "##{a.handle}" }.join(', ')) %>
+        <% end %>
+        <% if @tag.merged_into %>
+          <%= row.call('gk-tags-merged-into', l(:label_gk_tags_status_merged), gk_tags_pill(@tag.merged_into)) %>
+        <% end %>
+      </div>
+      <div class="splitcontentright">
+        <% kinds.each do |key, label, n| %>
+          <%= row.call("gk-tags-count-#{key}", label, key == :issues ? link_to(n.to_s, in_list) : n.to_s) %>
+        <% end %>
+        <% if @children.any? %>
+          <%= row.call('gk-tags-children', l(:label_gk_tags_children), content_tag(:span, safe_join(@children.map { |c| gk_tags_pill(c) }), class: 'gk-gui-stuff-pill-row')) %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <% if @tag.description.present? %>
+  <hr />
+  <div class="description">
+    <p><strong><%= l(:field_description) %></strong></p>
+    <div class="wiki"><%= textilizable @tag.description %></div>
+  </div>
+  <% end %>
+</div>
+
+<%# What bears the tag, one collapsible section per kind (core's markup and toggleFieldset, as the issue list's
+    filters); the issues first %>
+<fieldset class="collapsible gk-tags-section" id="gk-tags-section-issues">
+  <legend onclick="toggleFieldset(this);" class="icon icon-expanded"><%= sprite_icon('angle-down') %> <%= l(:label_issue_plural) %> <span class="badge badge-count"><%= @issues.size %></span></legend>
+  <div>
+    <% if @search_ids.size > @tag.self_and_merged_ids.size %><p class="gk-tags-muted"><%= l(:text_gk_tags_with_children) %></p><% end %>
+    <p><%= link_to l(:label_gk_tags_in_list), in_list %></p>
+    <% if @issues.empty? %><p class="nodata"><%= l(:label_no_data) %></p><% else %>
+    <table class="list issues odd-even">
+      <% @issues.each do |i| %>
+        <tr class="<%= i.css_classes %>"><td class="project"><%= link_to_project i.project %></td><td class="subject"><%= link_to_issue i %></td><td class="status"><%= i.status %></td></tr>
+      <% end %>
+    </table>
+    <% end %>
+  </div>
+</fieldset>
+<% @objects.each do |entry, list| %>
+<fieldset class="collapsible gk-tags-section" id="gk-tags-section-<%= entry.key %>">
+  <legend onclick="toggleFieldset(this);" class="icon icon-expanded"><%= sprite_icon('angle-down') %> <%= entry.label_text %> <span class="badge badge-count"><%= list.size %></span></legend>
+  <div>
+    <ul class="gk-tags-objects">
+      <% list.each do |o| %><li><%= link_to entry.title.call(o), entry.url.call(o) %></li><% end %>
+    </ul>
+  </div>
+</fieldset>
+<% end %>

@@ -1,0 +1,7 @@
+<%# Visa for the note written out in the mark, drawn only from GK GUI Stuff's page Appearance with its helpers: a
+    mark's pill with its note as the icon, as without the setting; with it, the same pill with the note written out
+    after the icon. Both drawn by the pill, still, so that the note's box does not open here. row: the setting %>
+<% pill = ->(open) { gk_gui_stuff_pill(l(:label_gk_tags_preview_mark), role: 3, note: l(:text_gk_tags_preview_note), note_icon: true, note_open: open,
+                                       note_hint: l(:text_gk_tags_mark_note_private)) } %>
+<% still = ->(html) { content_tag(:span, html, class: 'gk-gui-stuff-sg-still', inert: true) } %>
+<%= gk_gui_stuff_appearance_preview(row, off: still.call(pill.call(false)), on: still.call(pill.call(true)), mid_line: true) %>

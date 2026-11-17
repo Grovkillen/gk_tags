@@ -1,0 +1,42 @@
+<%# Administration, Taggar: every global tag with its status and aliases, its use as the count in its pill,
+    filtered by status; Edit in the row and the rarer actions in the row menu. %>
+<div class="contextual"><%= link_to l(:label_gk_tags_types), gk_tags_types_path %></div>
+<h2><%= l(:label_gk_tags_tags) %><% if @type %> &#187; <%= gk_tags_type_badge(@type) %><% end %></h2>
+<p class="gk-tags-intro"><%= l(:text_gk_tags_admin_intro) %></p>
+<p><% (['all'] + GkTags::STATUSES).each do |s| %>
+  <%= link_to_unless (params[:status].presence || 'all') == s, l("label_gk_tags_status_#{s}"), gk_tags_tags_path(status: (s == 'all' ? nil : s), type: params[:type].presence) %>
+<% end %></p>
+<% if @types.any? %>
+<p class="gk-tags-type-filter"><%= l(:label_gk_tags_type) %>:
+  <%= link_to_unless params[:type].blank?, l(:label_gk_tags_status_all), gk_tags_tags_path(status: params[:status].presence) %>
+  <% @types.each do |t| %>
+    <%= link_to_unless params[:type].to_s == t.key, t.name, gk_tags_tags_path(status: params[:status].presence, type: t.key) %>
+  <% end %></p>
+<% end %>
+<% if @tags.empty? %><p class="nodata"><%= l(:label_no_data) %></p><% else %>
+<table class="list gk-tags-admin" data-gk-gui-rowmenu>
+  <thead><tr><th><%= l(:label_gk_tags_tag) %></th><th><%= l(:field_name) %></th><th><%= l(:label_gk_tags_type) %></th><th><%= l(:label_gk_tags_path) %></th>
+    <th><%= l(:field_status) %></th><th><%= l(:label_gk_tags_aliases) %></th><th></th></tr></thead>
+  <tbody>
+  <% @tags.each do |t| %>
+    <tr class="gk-tags-status-<%= t.status %>" data-gk-gui-row-menu-label="#<%= t.ref %>">
+      <td class="tag"><%= gk_tags_pill(t, count: @counts[t.id].to_i) %></td>
+      <td class="name"><%= t.name %></td>
+      <td class="type"><%= t.type ? gk_tags_type_badge(t.type) : content_tag(:span, l(:label_gk_tags_untyped), class: 'gk-tags-muted') %></td>
+      <td class="text"><%= t.parent_id ? t.path_label : '' %></td>
+      <td class="status"><span class="gk-tags-tag-status gk-tags-tag-status-<%= t.status %>"><%= l("label_gk_tags_status_#{t.status}") %></span><% if t.merged_into %> &#8594; #<%= t.merged_into.key %><% end %></td>
+      <td class="aliases"><%= t.aliases.map { |a| a.deprecated ? content_tag(:s, a.handle) : a.handle }.then { |x| safe_join(x, ', ') } %></td>
+      <%# the pencil stays in the row, the rare actions are in gui_stuff's row menu; a merged tag has neither
+          Slå ihop nor Avveckla, as its page has them not %>
+      <td class="buttons"><%= link_to sprite_icon('edit', l(:button_edit)), edit_gk_tags_tag_path(t), class: 'icon icon-edit', data: { gk_gui_row_action: 'keep' } %>
+        <%= link_to l(:text_gk_tags_pill_issues, tag: "##{t.ref}"), gk_tags_issues_path(t), data: { gk_gui_row_action: true } %>
+        <% unless t.status == 'merged' %>
+          <%= link_to l(:label_gk_tags_merge), edit_gk_tags_tag_path(t, anchor: 'gk-tags-merge'), data: { gk_gui_row_action: true } %>
+          <%= link_to l(t.status == 'retired' ? :button_gk_tags_restore : :button_gk_tags_retire), edit_gk_tags_tag_path(t, anchor: 'gk-tags-retire'), data: { gk_gui_row_action: true } %>
+        <% end %></td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>
+<%= gk_gui_stuff_row_menu %>
+<% end %>

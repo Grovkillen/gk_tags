@@ -1,0 +1,10 @@
+<%# The tag field of a registered object (people's organizations and persons): the same chooser as the issue's %>
+<% if GkTags::Taggables.tag?(object) %>
+<% value = object.instance_variable_get(:@gk_tags_input) || object.gk_tag_list %>
+<% create = GkTags::Access.create_free?(nil) %>
+<p class="gk-tags-field-row"><label for="<%= prefix %>_gk_tag_list"><%= l(:label_gk_tags_tags) %></label>
+  <%= hidden_field_tag "#{prefix}[gk_tag_list][]", '', id: nil %>
+  <%= select_tag "#{prefix}[gk_tag_list][]", gk_tags_select_options(value), multiple: true, id: "#{prefix}_gk_tag_list", 'aria-label': l(:label_gk_tags_tags),
+                                                                          data: gk_tags_select_data(create) %>
+  <em class="info"><%= l(create ? :text_gk_tags_field : :text_gk_tags_field_no_new) %></em></p>
+<% end %>

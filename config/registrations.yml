@@ -1,0 +1,62 @@
+# config/registrations.yml: vad pluginet lägger i de gemensamma lagren.
+# Tomma listor betyder ingenting där; nycklarna
+# får inte saknas. Fylls när pluginet byggs, ur manifestets Registreringar.
+permissions: []
+menu: []
+drawer: []
+notices: []
+banners: []
+waves: []
+surfaces: []
+color_roles:            # category and alert roles declared by gui_stuff's primitives (gk_gui_stuff_primitives.css), used by gk_tags.css; muted and waiting in gk_tags.css
+  - {key: "1", group: category, label: field_gk_tags_category}        # --gk-role-category-<n> (text, edge, filled pill) and -soft (background), n 1 to 12: a type's and a mark's category
+  - {key: "2", group: category, label: field_gk_tags_category}
+  - {key: "3", group: category, label: field_gk_tags_category}
+  - {key: "4", group: category, label: field_gk_tags_category}
+  - {key: "5", group: category, label: field_gk_tags_category}
+  - {key: "6", group: category, label: field_gk_tags_category}
+  - {key: "7", group: category, label: field_gk_tags_category}
+  - {key: "8", group: category, label: field_gk_tags_category}
+  - {key: "9", group: category, label: field_gk_tags_category}
+  - {key: "10", group: category, label: field_gk_tags_category}
+  - {key: "11", group: category, label: field_gk_tags_category}
+  - {key: "12", group: category, label: field_gk_tags_category}
+  - {key: warning, group: alert, label: label_gk_tags_marking_warning}  # --gk-role-alert-warning and -soft: a tag marked warning
+  - {key: alarm, group: alert, label: label_gk_tags_marking_alarm}      # --gk-role-alert-alarm and -soft: a tag marked alarm
+  - {key: muted, group: tags, label: label_gk_tags_tags}
+  - {key: waiting, group: tags, label: label_gk_tags_focus}
+records:
+  targets: []
+  note_kinds: []
+  event_kinds: []
+  link_kinds: []
+strings:
+  terms: []
+text_levels: []
+templates:
+  kinds: []
+scenario_steps: []
+jobs: []
+corners: []             # gui_stuff corner (hörnvik): {key, context, source, level}
+timeline: []            # planning tidsvyn: {key, kind: row_kind | span_source | point_source | count_source | decoration | side_panel | toolbar, label, condition, permission, renderer}
+queries: []             # queries-registret (kärnlager): {key, class, contexts: [global, project], default_columns, report}
+folds: []               # gui_stuff fold: {key, selector, threshold, label, memory: place | user | none}
+copies: []              # gui_stuff copy: {key, selector, format: text | link | markdown, label}
+view_states: []         # gui_stuff view_state: {key, context, values, default, label}; knappen i menyns Visa
+decorations: []         # gui_stuff decorate: {key, object_type, badge_source, where: [list, page, text]}
+content_transforms: []  # gui_stuff content: {key, selector, order, print: keep | strip}
+toolbar: []             # gui_stuff toolbar: {key, kind: insert | wrap | dialog, label, icon, target: [wiki, issue, note]}
+forms: []               # gui_stuff form: {key, schema, contexts}
+revisioned: []          # revisions release_flow: {model, policy_key (signoff), cmdb_binding: none | optional | always}
+locked: []              # gui_stuff locked (låst läge, suffix .locked): {context, keep: [delar som visas]}
+ribbons: []             # gui_stuff ribbon (hörnband): {key, context, word, line, target, priority}
+triggers: []            # triggers (kärnlager): färdiga utlösare pluginet levererar avstängda {key, label, event: {target, kind}, condition, actions, scope, enabled: false}
+trigger_actions: []     # triggers (kärnlager): åtgärder pluginet erbjuder {key, label, params, scope, mode: [job, sync], dry_run}
+gis_layers: []          # gis: lager pluginet visar {key, label, target, roles, color_role}
+gis_columns: []         # gis: egna geometrikolumner för massdata {table, column, srid, geometry_type, reason}
+disk_areas: []          # filområden på disk: {key, path eller setting + default, kind: content | byproduct | backup}; <attachments>, <redmine>, <plugin> ersätts
+appearances: {}         # fields layouts: utseenden per fälttyp {<field_format>: [{key, name, defaults: [show, edit, small], text}]}
+access_items: []        # access: uppgifter som bär en nivå {key, label, plugin}
+appearance_settings:    # records AppearanceSettings (init.rb): off from the start; tags.sidebar was a function before
+  - {key: tags.sidebar, group: lists, modes: ["off", optional, forced], default: "off", proposal: "off", values: [sidebar_limit, sidebar_top], label: label_gk_tags_appearance_sidebar, help: text_gk_tags_appearance_sidebar}
+  - {key: tags.note_text, group: issue, modes: ["off", optional, forced], default: "off", proposal: "off", values: [], label: label_gk_tags_appearance_note_text, help: text_gk_tags_appearance_note_text}

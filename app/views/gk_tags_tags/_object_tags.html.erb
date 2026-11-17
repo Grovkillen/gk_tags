@@ -1,0 +1,7 @@
+<% if GkTags::Taggables.view?(object) %>
+<% tags = object.gk_tags_current_tags %>
+<div class="box gk-tags-object" id="gk-tags-object">
+  <h3><%= l(:label_gk_tags_tags_count, count: tags.size) %></h3>
+  <p><% if tags.any? %><%= safe_join(tags.map { |t| gk_tags_pill(t) }, ' ') %><% else %><span class="gk-tags-muted"><%= l(:label_none) %></span><% end %></p>
+</div>
+<% end %>

@@ -1,0 +1,55 @@
+<%# A type's fields: the key only when it is made (it never changes), a name and a description as written (other
+    languages under fields' Översättningar), a category of the palette (gui_stuff's picker), icon (gk_icons' picker when it is there), the rules, and the reason of the place tags.lifecycle %>
+<% rs_on = !(defined?(GkRecords::Reasons) && GkRecords::Reasons.off?('tags.lifecycle')) %>
+<% rs_req = defined?(GkRecords::Reasons) && GkRecords::Reasons.required?('tags.lifecycle') %>
+<% gk_icons_assets if respond_to?(:gk_icons_assets) %>
+<%= error_messages_for 'type' %>
+<div class="box tabular">
+  <p><label for="type_key"><%= l(:field_gk_tags_type_key) %><% if type.new_record? %> <span class="required">*</span><% end %></label>
+    <% if type.new_record? %>
+      <%= text_field_tag 'type[key]', type.key, size: 30, maxlength: 40, id: 'type_key', data: (type.new_record? ? { gk_gui_stuff_key_from: 'type_name', gk_gui_stuff_key_max: 40, gk_gui_stuff_key_examples: GkTagsType.order(:key).limit(3).pluck(:key).join(', ') } : {}), autocomplete: 'off' %>
+      <em class="info"><%= l(:text_gk_tags_type_key) %></em>
+    <% else %><code><%= type.key %></code><% end %></p>
+  <p><label for="type_name"><%= l(:field_name) %></label>
+    <%= text_field_tag 'type[name]', type[:name], size: 40, maxlength: 255, id: 'type_name' %>
+    <em class="info"><%= l(:text_gk_tags_type_translations) %></em></p>
+  <p><label for="type_description"><%= l(:field_description) %></label>
+    <%= text_area_tag 'type[description]', type[:description], rows: 3, cols: 60, id: 'type_description' %></p>
+  <%# gui_stuff's picker opens a popover, which never stands in a p: the row is gui_stuff's tabular row %>
+  <div class="gk-gui-stuff-tabular-row"><label id="type_category_label"><%= l(:field_gk_tags_category) %></label><%= gk_gui_stuff_category_picker('type[category]', type.category, labelledby: 'type_category_label') %>
+    <em class="info"><%= l(:text_gk_tags_type_category) %></em></div>
+  <p><label for="type_icon"><%= l(:field_gk_tags_icon) %></label>
+    <%= text_field_tag 'type[icon]', type.icon, size: 30, maxlength: 80, id: 'type_icon', autocomplete: 'off', data: { gk_icons_picker: '1' }, 'aria-label': l(:field_gk_tags_icon) %></p>
+  <p><label for="type_namespace"><%= l(:field_gk_tags_namespace) %></label>
+    <%= text_field_tag 'type[namespace]', type.namespace, size: 20, maxlength: 40, id: 'type_namespace', autocomplete: 'off' %>
+    <em class="info"><%= l(:text_gk_tags_namespace) %></em></p>
+  <p><label for="type_exclusive"><%= l(:field_gk_tags_exclusive) %></label>
+    <%= hidden_field_tag 'type[exclusive]', '0', id: nil %><%= check_box_tag 'type[exclusive]', '1', type.exclusive, id: 'type_exclusive' %>
+    <em class="info"><%= l(:text_gk_tags_exclusive) %></em></p>
+  <p><label><%= l(:field_gk_tags_allowed_on) %></label>
+    <%= hidden_field_tag 'type[allowed_on][]', '', id: nil %>
+    <% gk_tags_taggable_choices(type.allowed_on_list).each do |key, label| %>
+      <label class="inline"><%= check_box_tag 'type[allowed_on][]', key, type.allowed_on_list.include?(key), id: nil %> <%= label %></label>
+    <% end %>
+    <em class="info"><%= l(:text_gk_tags_allowed_on) %></em></p>
+  <p><label><%= l(:field_gk_tags_required_for) %></label>
+    <%= hidden_field_tag 'type[required_for][]', '', id: nil %>
+    <% gk_tags_taggable_choices(type.required_for_list).each do |key, label| %>
+      <label class="inline"><%= check_box_tag 'type[required_for][]', key, type.required_for_list.include?(key), id: nil %> <%= label %></label>
+    <% end %>
+    <em class="info"><%= l(:text_gk_tags_required_for) %></em></p>
+  <p><label for="type_inherit_parents"><%= l(:field_gk_tags_inherit_parents) %></label>
+    <%= hidden_field_tag 'type[inherit_parents]', '0', id: nil %><%= check_box_tag 'type[inherit_parents]', '1', type.new_record? ? true : type.inherit_parents, id: 'type_inherit_parents' %>
+    <em class="info"><%= l(:text_gk_tags_inherit_parents) %></em></p>
+  <p><label for="type_repeat_keys"><%= l(:field_gk_tags_repeat_keys) %></label>
+    <%= hidden_field_tag 'type[repeat_keys]', '0', id: nil %><%= check_box_tag 'type[repeat_keys]', '1', type.repeat_keys, id: 'type_repeat_keys' %>
+    <em class="info"><%= l(:text_gk_tags_repeat_keys) %></em></p>
+  <p><label for="type_position"><%= l(:field_position) %></label><%= number_field_tag 'type[position]', type.position.to_i, min: 0, id: 'type_position' %>
+    <em class="info"><%= l(:text_gk_tags_type_position) %></em></p>
+  <%# records folds an optional reason into its own link "Spara med skäl": a label of our own only when it is required %>
+  <% if rs_on && respond_to?(:gk_records_reason_field) %>
+  <p><% if rs_req %><label for="type_reason"><%= l(:field_gk_tags_reason) %> <span class="required">*</span></label><% end %><%= gk_records_reason_field('tags.lifecycle', name: 'type[reason]', size: 50, id: 'type_reason', chips: true) %></p>
+  <% elsif rs_on %>
+  <p><label for="type_reason"><%= l(:field_gk_tags_reason) %></label><%= text_field_tag('type[reason]', '', size: 50, id: 'type_reason') %></p>
+  <% end %>
+</div>

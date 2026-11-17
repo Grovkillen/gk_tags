@@ -1,0 +1,110 @@
+/* gk_tags: logical properties only. Colour in data is a category of the shared palette, never a hue: a type and a mark draw with the roles of their category, a tag that means something urgent with the roles of
+   that alert level. The category and alert roles are gui_stuff's (gk_gui_stuff_primitives.css, which tags requires),
+   and the pills, the picker and the fold-out boxes are its primitives; only tags' own two roles are declared here,
+   on the lowest specificity, so that a theme takes them over, and each points at a general role of gui_stuff: muted
+   at the muted role, waiting at the warning. A strong role is for text, edge and a filled pill, its -soft for the
+   background. */
+:where(:root) {
+  --gk-role-tags-muted: var(--gk-role-ui-muted, var(--oc-gray-6, #868e96));
+  --gk-role-tags-waiting: var(--gk-role-alert-warning, var(--oc-orange-8, #e8590c));
+}
+
+/* A tag as a pill, in text and in lists. Its tone is two variables of its own, which the class of its category or
+   marking sets from the roles (below); without such a class it is the tone of a tag with no type: the muted role on
+   the raised ground, as gui_stuff's muted pill */
+a.gk-tags-pill, span.gk-tags-pill { display: inline-block; padding-inline: 0.45em; border-radius: 9px; font-size: 0.9em; line-height: 1.5; text-decoration: none;
+  border: 1px solid var(--gk-tags-pill-fg, var(--gk-role-tags-muted)); /* gk-u U4: the pill's own tone, set from the roles by its category or marking class; the fallback is the muted role */
+  background: var(--gk-tags-pill-bg, var(--gk-role-ui-raised, var(--oc-gray-1, #f1f3f5))); /* gk-u U4: the pill's own tone, set from the roles by its category or marking class; the fallback is the raised ground */
+  color: var(--gk-tags-pill-fg, var(--gk-role-tags-muted)); } /* gk-u U4: the pill's own tone, set from the roles by its category or marking class; the fallback is the muted role */
+a.gk-tags-pill:hover { text-decoration: underline; }
+.gk-tags-pill-none, .gk-tags-sb-notype { --gk-tags-pill-bg: var(--gk-role-ui-raised, var(--oc-gray-1, #f1f3f5)); --gk-tags-pill-fg: var(--gk-role-tags-muted); }
+.gk-tags-cat-1 { --gk-tags-pill-bg: var(--gk-role-category-1-soft); --gk-tags-pill-fg: var(--gk-role-category-1); }
+.gk-tags-cat-2 { --gk-tags-pill-bg: var(--gk-role-category-2-soft); --gk-tags-pill-fg: var(--gk-role-category-2); }
+.gk-tags-cat-3 { --gk-tags-pill-bg: var(--gk-role-category-3-soft); --gk-tags-pill-fg: var(--gk-role-category-3); }
+.gk-tags-cat-4 { --gk-tags-pill-bg: var(--gk-role-category-4-soft); --gk-tags-pill-fg: var(--gk-role-category-4); }
+.gk-tags-cat-5 { --gk-tags-pill-bg: var(--gk-role-category-5-soft); --gk-tags-pill-fg: var(--gk-role-category-5); }
+.gk-tags-cat-6 { --gk-tags-pill-bg: var(--gk-role-category-6-soft); --gk-tags-pill-fg: var(--gk-role-category-6); }
+.gk-tags-cat-7 { --gk-tags-pill-bg: var(--gk-role-category-7-soft); --gk-tags-pill-fg: var(--gk-role-category-7); }
+.gk-tags-cat-8 { --gk-tags-pill-bg: var(--gk-role-category-8-soft); --gk-tags-pill-fg: var(--gk-role-category-8); }
+.gk-tags-cat-9 { --gk-tags-pill-bg: var(--gk-role-category-9-soft); --gk-tags-pill-fg: var(--gk-role-category-9); }
+.gk-tags-cat-10 { --gk-tags-pill-bg: var(--gk-role-category-10-soft); --gk-tags-pill-fg: var(--gk-role-category-10); }
+.gk-tags-cat-11 { --gk-tags-pill-bg: var(--gk-role-category-11-soft); --gk-tags-pill-fg: var(--gk-role-category-11); }
+.gk-tags-cat-12 { --gk-tags-pill-bg: var(--gk-role-category-12-soft); --gk-tags-pill-fg: var(--gk-role-category-12); }
+.gk-tags-marking-warning { --gk-tags-pill-bg: var(--gk-role-alert-warning-soft); --gk-tags-pill-fg: var(--gk-role-alert-warning); }
+.gk-tags-marking-alarm { --gk-tags-pill-bg: var(--gk-role-alert-alarm-soft); --gk-tags-pill-fg: var(--gk-role-alert-alarm); }
+
+/* The issue page: tags, marks and focus; a note's marks */
+.gk-tags-issue p { margin-block: 0.3em; }
+.gk-tags-muted, .gk-tags-intro { color: var(--gk-role-tags-muted); }
+.gk-tags-journal { margin-block-start: 0.3em; font-size: 0.9em; }
+.gk-tags-mark-row { margin-block: 0.3em; }
+
+/* Administration and the page Fokus: a merged or retired tag dimmed, an issue that waits marked */
+.gk-tags-status-merged td, .gk-tags-status-retired td { color: var(--gk-role-tags-muted); }
+.gk-tags-wait { color: var(--gk-role-tags-waiting); font-size: 0.85em; }
+/* Each own mark and the new one on a row of its own in the box above the list (core makes forms inline) */
+form.gk-tags-mark-row { display: block; margin-block: 4px; }
+/* The marks in the issue's head, under the reactions at the end of the line (core floats the reactions the same
+   way); the Fokus page's tabs, history and sharing box */
+div.issue .gk-tags-head-marks { float: inline-end; clear: inline-end; margin-block-start: 0.4em; margin-inline-start: 10px; font-size: 0.9em; text-align: end; }
+.gk-tags-focus-tab { padding-block-start: 0.5em; }
+.gk-tags-history-mode label { margin-inline-end: 1em; }
+.gk-tags-share-scopes { display: flex; flex-wrap: wrap; gap: 1em; }
+.gk-tags-share-scope { flex: 1 1 20em; }
+.gk-tags-share-scope select { min-inline-size: 16em; }
+.gk-tags-person { margin-block: 1em 0.3em; }
+a.gk-tags-undo { margin-inline-start: 0.5em; font-weight: bold; }
+/* A type as a badge in its colour (the same tokens as the pills) with its icon, the filter by type in the list of
+   tags, the list of other objects with a tag */
+.gk-tags-type { display: inline-block; padding-inline: 0.45em; border-radius: 3px; font-size: 0.9em; line-height: 1.5;
+  background: var(--gk-tags-pill-bg, var(--gk-role-ui-raised, var(--oc-gray-1, #f1f3f5))); /* gk-u U4: the badge's own tone, set from the roles by its category or marking class; the fallback is the raised ground */
+  color: var(--gk-tags-pill-fg, var(--gk-role-tags-muted)); } /* gk-u U4: the badge's own tone, set from the roles by its category or marking class; the fallback is the muted role */
+.gk-tags-type svg { vertical-align: middle; }
+.gk-tags-type-filter a, .gk-tags-type-filter span { margin-inline-end: 0.4em; }
+.gk-tags-objects { margin-block: 0.3em; }
+/* The box Taggar in a list's sidebar (GkTags::Sidebar). Form C: a group per type with a 3 px edge and
+   the heading in the type's category (no type: the muted role), the pills flowing on rows with the count inside */
+.gk-tags-sb-type { border-inline-start: 3px solid var(--gk-tags-pill-fg); padding-inline-start: 6px; margin-block: 0 0.6em; }
+.gk-tags-sidebar h4.gk-tags-sb-head { margin: 0; padding: 0; border: 0; background: none; font-size: 1em; }
+.gk-tags-sb-toggle { display: inline-flex; align-items: center; gap: 0.25em; margin: 0; padding: 0; border: 0; background: none; cursor: pointer;
+  font: inherit; font-weight: bold; color: var(--gk-tags-pill-fg); }
+.gk-tags-sb-toggle svg { transition: transform 0.15s; }
+.gk-tags-sb-toggle[aria-expanded="false"] svg { transform: rotate(-90deg); }
+html[dir="rtl"] .gk-tags-sb-toggle[aria-expanded="false"] svg { transform: rotate(90deg); }
+.gk-tags-sb-type-count { display: none; color: var(--gk-role-tags-muted); font-weight: normal; font-variant-numeric: tabular-nums; }
+.gk-tags-sb-list { list-style: none; display: flex; flex-wrap: wrap; gap: 4px; margin: 0.25em 0 0; padding: 0; }
+.gk-tags-sb-row { display: inline-flex; align-items: center; margin: 0; }
+/* Form D, over the limit (gk_tags.js): one grid for the whole box, a subgrid per type, so that every bar starts on the
+   same line in all types; a row per tag with its bar (the share of the most used tag in the box) in the tone of the
+   row, which has the class of the tag's category or marking; the scale above the first group only; search and sorting
+   above; the top per type with Visa alla */
+.gk-tags-sb-tools { display: flex; gap: 4px; margin-block: 0 0.5em; }
+.gk-tags-sb-tools input { flex: 1 1 auto; min-inline-size: 0; }
+.gk-tags-sb-d .gk-tags-sb-groups { display: grid; grid-template-columns: max-content minmax(3em, 1fr); column-gap: 6px; }
+.gk-tags-sb-d .gk-tags-sb-type, .gk-tags-sb-d .gk-tags-sb-list, .gk-tags-sb-d .gk-tags-sb-row { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; }
+.gk-tags-sb-d .gk-tags-sb-list { gap: 2px 6px; }
+.gk-tags-sb-d .gk-tags-sb-head, .gk-tags-sb-d .gk-tags-sb-more { grid-column: 1 / -1; }
+.gk-tags-sb-d .gk-tags-sb-row { align-items: center; }
+.gk-tags-sb-d .gk-tags-sb-row > .gk-tags-sb-pill { grid-column: 1; justify-self: start; }
+.gk-tags-sidebar .gk-tags-sb-row[hidden], .gk-tags-sidebar .gk-tags-sb-type[hidden], .gk-tags-sidebar .gk-tags-sb-list[hidden] { display: none; }
+.gk-tags-sb-d .gk-tags-sb-type-count { display: inline; }
+.gk-tags-sb-bar { grid-column: 2; block-size: 6px; border-radius: 3px; overflow: hidden;
+  background: var(--gk-tags-pill-bg, var(--gk-role-ui-raised, var(--oc-gray-1, #f1f3f5))); } /* gk-u U4: the row's own tone, set from the roles by its category or marking class; the fallback is the raised ground */
+.gk-tags-sb-bar > span { display: block; block-size: 100%;
+  background: var(--gk-tags-pill-fg, var(--gk-role-tags-muted)); } /* gk-u U4: the row's own tone, set from the roles by its category or marking class; the fallback is the muted role */
+.gk-tags-sb-scale { grid-column: 2; display: flex; justify-content: space-between; font-size: 0.8em; color: var(--gk-role-tags-muted); font-variant-numeric: tabular-nums; }
+.gk-tags-sb-more { justify-self: start; margin-block: 0.2em 0; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; font-size: 0.9em;
+  color: var(--gk-role-tags-muted); text-decoration: underline; }
+.gk-tags-sb-none { color: var(--gk-role-tags-muted); }
+/* A tag's page: the head is core's div.issue (several pills in one value stand in gui_stuff's pill row); what bears
+   the tag in core's collapsible fieldsets, one per kind */
+.gk-tags-head .attributes .value .gk-tags-type { margin-inline-end: 0.2em; }
+fieldset.gk-tags-section { margin-block: 1em 0.5em; }
+fieldset.gk-tags-section > legend { font-weight: bold; }
+fieldset.gk-tags-section > legend .badge-count { inset-block-end: 1px; }
+/* The tag's page in Administration: the two action cards side by side, under each other on a narrow
+   screen (a card keeps the space under it that gui_stuff gives it, so the grid adds none between the rows); the
+   aliases as pills with their check box, a row each */
+.gk-tags-actions { display: grid; grid-template-columns: 1fr 1fr; column-gap: 0.6em; }
+@media (max-width: 899px) { .gk-tags-actions { grid-template-columns: 1fr; } }
+.gk-tags-alias-row { margin-block: 0.2em; }

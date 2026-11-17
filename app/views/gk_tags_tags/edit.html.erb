@@ -1,0 +1,161 @@
+<%# A tag in Administration, Taggar: the heading with the tag's pill, its status and its use; the box
+    Taggen (type and parent, and for a managed tag name, description and marking) with its own Save, which saves only
+    those fields and says beside it what is changed and not saved; the box Identifierare och alias, with which
+    aliases are suggested and its own Save, and Byt identifierare and Lägg till alias in popover boxes; the box Åtgärder
+    with Slå ihop (alarm), Gör administrerad for a free, established or retired tag, and Avveckla or Återställ as
+    action cards. Each action is its own form in its popover box with the reason. Each change is its own event on the tag
+    in records. After a refused save the page comes back with what was written in that box (@box, @form), its popover
+    open. Every form here says autocomplete off: a browser that puts a form's fields back when the page is read again
+    would leave a choice that was never saved standing as if the page was read with it, and the count of what is
+    changed, which reads what stood from the fields, would miss it. %>
+<% fv = ->(box, k, current) { @box == box && @form&.key?(k.to_s) ? @form[k] : current } %>
+<% merged = @tag.status == 'merged' %>
+<% retired = @tag.status == 'retired' %>
+<% managed = @tag.status == 'managed' %>
+<% promotable = GkTagsTagsController::PROMOTABLE.include?(@tag.status) %>
+<h2><%= link_to l(:label_gk_tags_tags), gk_tags_tags_path %> &#187;
+  <%= content_tag(:span, gk_tags_pill(@tag, split: false), id: 'gk-tags-head-pill', data: { gk_tags_category: @tag.category, gk_tags_type_role: @tag.type&.category || GkTagsTag::NO_TYPE_ROLE }) %></h2>
+<p class="gk-tags-status-line"><%= l(:field_status) %>: <strong><%= l("label_gk_tags_status_#{@tag.status}") %></strong>
+  <% if @tag.merged_into %>(&#8594; <%= gk_tags_pill(@tag.merged_into) %>)<% end %>
+  &#183; <%= gk_tags_usage_line(@tag, @usage) %></p>
+
+<%# The box Taggen: one form, one Save, the text by it (gk_gui_stuff_form_changes) %>
+<%= form_tag gk_tags_tag_path(@tag), method: :patch, id: 'gk-tags-box-tag', autocomplete: 'off', data: gk_gui_stuff_form_changes do %>
+  <%= hidden_field_tag 'box', 'tag', id: nil %>
+  <fieldset class="box tabular"><legend><%= l(:label_gk_tags_box_tag) %></legend>
+    <%# name, description and marking belong to a managed tag; another one gets them with the action Gör administrerad %>
+    <% if managed %>
+    <p><label for="tag_name"><%= l(:field_name) %></label><%= text_field_tag 'tag[name]', fv.call('tag', :name, @tag.name), size: 50, id: 'tag_name' %></p>
+    <p><label for="tag_description"><%= l(:field_description) %></label><%= text_area_tag 'tag[description]', fv.call('tag', :description, @tag.description), rows: 4, cols: 60, id: 'tag_description', class: 'wiki-edit' %></p>
+    <% end %>
+    <% unless merged %>
+    <%# the types by their names in the reader's language (GK Fields' translations) %>
+    <p><label for="gk_tags_type_id"><%= l(:label_gk_tags_type) %></label><%= select_tag 'tag[type_id]', GkTags.translated { gk_tags_type_options(fv.call('tag', :type_id, @tag.type_id).presence&.to_i) }, id: 'gk_tags_type_id' %>
+      <em class="info"><%= l(:text_gk_tags_set_type) %></em></p>
+    <% end %>
+    <% if managed %>
+    <p><label for="tag_marking"><%= l(:field_gk_tags_marking) %></label><%= select_tag 'tag[marking]', gk_tags_marking_options(fv.call('tag', :marking, @tag.marking)), id: 'tag_marking' %>
+      <em class="info"><%= l(:text_gk_tags_marking) %></em></p>
+    <% end %>
+    <% unless merged %>
+    <%# the parent in gui_stuff's chooser with one choice and Lägg till: never the tag itself or one of its
+        descendants; a new parent is made without a type when the box is saved %>
+    <p><label for="gk_tags_parent"><%= l(:label_gk_tags_parent) %></label>
+      <%= select_tag 'tag[parent]', content_tag(:option, '', value: '') + gk_tags_select_options(fv.call('tag', :parent, @tag.parent&.ref).to_s, except: [@tag.id] + @tag.descendant_ids, path: true),
+                     id: 'gk_tags_parent', 'aria-label': l(:label_gk_tags_parent), data: gk_tags_select_data(true) %>
+      <em class="info"><%= l(:label_gk_tags_path) %>: <span id="gk-tags-path-now" data-gk-tags-own="<%= @tag.label %>"><%= @tag.path_label %></span>.
+        <%= l(:text_gk_tags_move) %></em></p>
+    <% if (kids = @tag.children.usable.sorted.to_a).any? %>
+    <p><label><%= l(:label_gk_tags_children) %></label><%= safe_join(kids.map { |c| link_to("##{c.ref}", edit_gk_tags_tag_path(c)) }, ', ') %></p>
+    <% end %>
+    <% end %>
+    <%# the box's Save with the reason of the place tags.lifecycle: Krävs "Spara…" with the box, Valfritt
+        [ Spara | ✎ ], Av the button; a row of the tabular box, since it may be a popover %>
+    <div class="gk-gui-stuff-tabular-row"><%= gk_gui_stuff_reason_button(l(:button_save), reason: 'tags.lifecycle', reason_name: 'tag[reason]', reason_value: fv.call('tag', :reason, nil),
+                                                                       html: { data: { gk_gui_box_save: '1' } }) %></div>
+  </fieldset>
+<% end %>
+
+<%# Identifierare och alias: which aliases are suggested has its own Save; a new handle and a new alias are actions %>
+<div class="box gk-tags-box-ident">
+  <h3><%= l(:label_gk_tags_box_ident) %></h3>
+  <p><%= l(:label_gk_tags_identifier) %>: <strong>#<%= @tag.key %></strong></p>
+  <% if @tag.aliases.any? %>
+  <%= form_tag gk_tags_tag_path(@tag), method: :patch, id: 'gk-tags-box-aliases', autocomplete: 'off', data: gk_gui_stuff_form_changes do %>
+    <%= hidden_field_tag 'box', 'aliases', id: nil %>
+    <%= hidden_field_tag 'tag[aliases_shown]', '1', id: nil %>
+    <% off = @box == 'aliases' && @form ? Array(@form[:deprecated_alias_ids]).map(&:to_i) : @tag.aliases.select(&:deprecated).map(&:id) %>
+    <p><%= l(:label_gk_tags_aliases) %>:</p>
+    <% @tag.aliases.each do |a| %>
+    <p class="gk-tags-alias-row"><%= gk_gui_stuff_pill("##{a.handle}", role: a.deprecated ? :muted : nil, note: [a.language, a.former_key ? l(:label_gk_tags_former_key) : nil].compact.join(', ').presence) %>
+      <label class="inline"><%= check_box_tag 'tag[deprecated_alias_ids][]', a.id, off.include?(a.id), id: "gk_tags_alias_off_#{a.id}" %> <%= l(:button_gk_tags_deprecate) %></label></p>
+    <% end %>
+    <p><%= button_tag l(:button_save), type: 'submit', name: nil, data: { gk_gui_box_save: '1' } %></p>
+  <% end %>
+  <% else %>
+  <p><%= l(:label_gk_tags_aliases) %>: <span class="gk-tags-muted"><%= l(:label_none) %></span></p>
+  <% end %>
+  <div class="gk-tags-box-actions">
+    <%= gk_gui_stuff_popover(l(:button_gk_tags_rename), html: { open: @box == 'rename' }) do %>
+      <%= form_tag gk_tags_tag_path(@tag), method: :patch, id: 'gk-tags-box-rename', autocomplete: 'off' do %>
+        <%= hidden_field_tag 'box', 'rename', id: nil %>
+        <p><label for="gk_tags_key"><%= l(:label_gk_tags_rename) %></label> <%= text_field_tag 'tag[key]', fv.call('rename', :key, @tag.key), size: 30, id: 'gk_tags_key' %></p>
+        <p><%= l(:text_gk_tags_rename) %></p>
+        <%= render partial: 'gk_tags_tags/reason', locals: { id: 'tag_reason_rename', value: fv.call('rename', :reason, nil) } %>
+        <%= gk_gui_stuff_popover_buttons(l(:button_gk_tags_rename)) %>
+      <% end %>
+    <% end %>
+    <%= gk_gui_stuff_popover(l(:button_gk_tags_add_alias), html: { open: @box == 'alias' }) do %>
+      <%= form_tag gk_tags_tag_path(@tag), method: :patch, id: 'gk-tags-box-alias', autocomplete: 'off' do %>
+        <%= hidden_field_tag 'box', 'alias', id: nil %>
+        <%# An alias's language is one the installation offers content in: fields' one list, without fields the
+            default language and English %>
+        <% alias_langs = (defined?(::GkFields.content_languages) ? ::GkFields.content_languages : [Setting.default_language, 'en']).compact.map(&:to_s).reject(&:empty?).uniq %>
+        <p><label for="gk_tags_alias_handle"><%= l(:label_gk_tags_alias) %></label>
+          <%= text_field_tag 'tag[alias_handle]', fv.call('alias', :alias_handle, ''), size: 24, placeholder: l(:field_gk_tags_handle), id: 'gk_tags_alias_handle' %>
+          <%= select_tag 'tag[alias_language]', options_for_select([[l(:label_gk_tags_all_languages), '']] + alias_langs.map { |lang| [lang, lang] }, fv.call('alias', :alias_language, '')),
+                         id: 'gk_tags_alias_language', 'aria-label': l(:label_gk_tags_alias_language) %></p>
+        <p><%= l(:text_gk_tags_aliases) %></p>
+        <%= render partial: 'gk_tags_tags/reason', locals: { id: 'tag_reason_alias', value: fv.call('alias', :reason, nil) } %>
+        <%= gk_gui_stuff_popover_buttons(l(:button_add)) %>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+
+<%# Åtgärder: Slå ihop cannot be undone (alarm), Gör administrerad, Avveckla or Återställ; never through the box
+    Taggen's Save %>
+<% unless merged %>
+<div class="box">
+  <h3><%= l(:label_gk_tags_box_actions) %></h3>
+  <div class="gk-tags-actions">
+    <%# the ids are where the list's row menu leads %>
+    <%= gk_gui_stuff_action_card(l(:label_gk_tags_merge), l(:text_gk_tags_merge_card), role: :alarm, html: { id: 'gk-tags-merge' }) do %>
+      <%= gk_gui_stuff_popover(l(:label_gk_tags_merge), role: :alarm, html: { open: @box == 'merge' }) do %>
+        <%= form_tag gk_tags_tag_path(@tag), method: :patch, id: 'gk-tags-box-merge', autocomplete: 'off' do %>
+          <%= hidden_field_tag 'box', 'merge', id: nil %>
+          <p><label for="gk_tags_into"><%= l(:field_gk_tags_into) %></label>
+            <%= select_tag 'tag[into]', content_tag(:option, '', value: '') + gk_tags_select_options(fv.call('merge', :into, '').to_s, except: @tag.self_and_merged_ids),
+                           id: 'gk_tags_into', 'aria-label': l(:field_gk_tags_into), data: { gk_gui_select: 'on' } %></p>
+          <p><%= l(:text_gk_tags_merge, usage: gk_tags_usage_text(@usage), tag: @tag.key) %></p>
+          <%= render partial: 'gk_tags_tags/reason', locals: { id: 'tag_reason_merge', value: fv.call('merge', :reason, nil) } %>
+          <%= gk_gui_stuff_popover_buttons(l(:label_gk_tags_merge), alarm: true) %>
+        <% end %>
+      <% end %>
+    <% end %>
+    <%# Gör administrerad: an action, not a field (a free, established or retired tag, which is then in use again),
+        with the name, description and marking it gets and the reason %>
+    <% if promotable %>
+    <%= gk_gui_stuff_action_card(l(:button_gk_tags_promote_more), l(:text_gk_tags_promote_card), html: { id: 'gk-tags-promote' }) do %>
+      <%= gk_gui_stuff_popover(l(:button_gk_tags_promote_more), html: { open: @box == 'promote' }) do %>
+        <%= form_tag gk_tags_tag_path(@tag), method: :patch, id: 'gk-tags-box-promote', autocomplete: 'off' do %>
+          <%= hidden_field_tag 'box', 'promote', id: nil %>
+          <%= hidden_field_tag 'tag[promote]', '1', id: nil %>
+          <p><%= l(:text_gk_tags_promote) %></p>
+          <p><label for="gk_tags_promote_name"><%= l(:field_name) %></label>
+            <%= text_field_tag 'tag[name]', fv.call('promote', :name, @tag.name), size: 40, id: 'gk_tags_promote_name' %></p>
+          <p><label for="gk_tags_promote_description"><%= l(:field_description) %></label>
+            <%= text_area_tag 'tag[description]', fv.call('promote', :description, @tag.description), rows: 3, cols: 40, id: 'gk_tags_promote_description' %></p>
+          <p><label for="gk_tags_promote_marking"><%= l(:field_gk_tags_marking) %></label>
+            <%= select_tag 'tag[marking]', gk_tags_marking_options(fv.call('promote', :marking, @tag.marking)), id: 'gk_tags_promote_marking' %></p>
+          <%= render partial: 'gk_tags_tags/reason', locals: { id: 'tag_reason_promote', value: fv.call('promote', :reason, nil) } %>
+          <%= gk_gui_stuff_popover_buttons(l(:button_gk_tags_promote)) %>
+        <% end %>
+      <% end %>
+    <% end %>
+    <% end %>
+    <% back = retired ? :button_gk_tags_restore : :button_gk_tags_retire %>
+    <%= gk_gui_stuff_action_card(l(back), l(retired ? :text_gk_tags_restore : :text_gk_tags_retire_card), html: { id: 'gk-tags-retire' }) do %>
+      <%= gk_gui_stuff_popover(l(back), html: { open: @box == 'retire' }) do %>
+        <%= form_tag gk_tags_tag_path(@tag), method: :patch, id: 'gk-tags-box-retire', autocomplete: 'off' do %>
+          <%= hidden_field_tag 'box', 'retire', id: nil %>
+          <%= hidden_field_tag 'tag[retire]', '1', id: nil %>
+          <p><%= retired ? l(:text_gk_tags_restore) : l(:text_gk_tags_retire, usage: gk_tags_usage_text(@usage)) %></p>
+          <%= render partial: 'gk_tags_tags/reason', locals: { id: 'tag_reason_retire', value: fv.call('retire', :reason, nil) } %>
+          <%= gk_gui_stuff_popover_buttons(l(back)) %>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+</div>
+<% end %>

@@ -1,0 +1,24 @@
+<%# Tidigare fokus: each time an issue was in focus, from and to (to empty while it still is); an issue the viewer may
+    not see is not named %>
+<% if rows.empty? %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% else %>
+<% issues = Issue.where(id: rows.map(&:issue_id).uniq).index_by(&:id) %>
+<table class="list gk-tags-focus-history">
+  <thead><tr><th><%= l(:field_issue) %></th><th><%= l(:label_gk_tags_from) %></th><th><%= l(:label_gk_tags_to) %></th></tr></thead>
+  <tbody>
+  <% rows.each do |r| %>
+    <% i = issues[r.issue_id] %>
+    <tr>
+      <% if i && i.visible? %>
+        <td class="subject"><%= link_to_issue i, truncate: 70 %></td>
+      <% else %>
+        <td class="subject gk-tags-muted"><%= l(:text_gk_tags_hidden_issue) %></td>
+      <% end %>
+      <td class="from"><%= format_time(r.from) %></td>
+      <td class="to"><%= r.to ? format_time(r.to) : '' %></td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>
+<% end %>

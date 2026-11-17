@@ -1,0 +1,26 @@
+<%# Put a personal marking on the issue or a note (GkTags::Personal, every kind drawn as pills: one's own marks, and
+    the tags of kinds other plugins register): core's add icon opens gui_stuff's popover with an optional note
+    (seen only by oneself) first and the marks as pills to click. A click puts it, and Enter in the note puts the first.
+    A mark already on the object is drawn chosen, with the check; a click puts it again only with another note. %>
+<% choices = GkTags::Personal.with_surface(:pills).flat_map do |kind|
+     tags = GkTags::Personal.tags_of(kind, User.current)
+     kind.key == 'mark' && tags.empty? ? [nil] : tags
+   end %>
+<% on_it = GkTags::Personal.on(journal || issue).select { |t| t.tag.owner_id == User.current.id }.map(&:tag_id) %>
+<%= gk_gui_stuff_popover(l(:button_gk_tags_mark), icon: 'add', icon_only: true) do %>
+  <%= form_tag gk_tags_mark_path(issue), method: :post do %>
+    <%= hidden_field_tag 'journal_id', journal&.id, id: nil %>
+    <p><%= text_field_tag 'note', '', placeholder: l(:text_gk_tags_mark_note_placeholder), 'aria-label': l(:field_gk_tags_note), id: nil, class: 'gk-gui-stuff-popover-field' %></p>
+    <p class="gk-gui-stuff-pill-row">
+      <% choices.each do |m| %>
+        <%# nil: the default mark, made the first time it is used, so never on the object yet %>
+        <%# a chosen mark is put again on a press (with another note), so its name says that rather than a toggle %>
+        <% if m %><%= gk_gui_stuff_pill(m.label, role: m.pill_role, choice: true, pressed: on_it.include?(m.id),
+                                        button: { type: 'submit', name: 'mark_id', value: m.id,
+                                                  aria: on_it.include?(m.id) ? { label: "#{m.label}, #{l(:text_gk_tags_mark_again)}" } : nil }) %>
+        <% else %><%= gk_gui_stuff_pill(l(:label_gk_tags_highlight), role: 10, button: { type: 'submit', name: 'mark_id', value: '' }, choice: true, pressed: false) %><% end %>
+      <% end %>
+    </p>
+    <p class="gk-gui-stuff-popover-hint"><%= l(:text_gk_tags_mark_one_click) %> <%= link_to l(:label_gk_tags_my_marks), gk_tags_marks_path %></p>
+  <% end %>
+<% end %>

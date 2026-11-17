@@ -1,0 +1,32 @@
+<%# A person's current focus in priority and due date order, with status, due date, time in focus and whether it
+    waits; one's own with Ta bort %>
+<% if items.empty? %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% else %>
+<table class="list gk-tags-focus-board">
+  <thead><tr>
+    <th><%= l(:field_subject) %></th><th><%= l(:field_priority) %></th><th><%= l(:field_due_date) %></th>
+    <th><%= l(:field_status) %></th><th><%= l(:label_gk_tags_in_focus) %></th><th></th>
+  </tr></thead>
+  <tbody>
+  <% items.each do |item| %>
+    <% i = item[:issue] %>
+    <tr class="<%= 'gk-tags-waiting' if i && GkTags::Focus.waiting?(i, owner) %>">
+      <% if i %>
+        <td class="subject"><%= link_to_issue i, truncate: 70 %></td>
+        <td class="priority"><%= i.priority %></td>
+        <td class="due_date"><%= i.due_date ? format_date(i.due_date) : '' %></td>
+        <td class="status"><%= i.status %><% if GkTags::Focus.waiting?(i, owner) %> <span class="gk-tags-wait"><%= l(:label_gk_tags_waiting) %></span><% end %></td>
+      <% else %>
+        <td colspan="4" class="subject gk-tags-muted"><%= l(:text_gk_tags_hidden_issue) %></td>
+      <% end %>
+      <td class="in_focus"><%= l(:text_gk_tags_since, time: distance_of_time_in_words(item[:tagging].created_at, Time.current)) %></td>
+      <td class="buttons"><% if own %>
+        <%= link_to sprite_icon('del', l(:button_gk_tags_focus_remove)), gk_tags_focus_remove_path(item[:tagging].taggable_id, back_url: request.fullpath), method: :post,
+                    class: 'icon icon-del' %>
+      <% end %></td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>
+<% end %>

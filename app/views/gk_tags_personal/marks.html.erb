@@ -1,0 +1,47 @@
+<%# Mina märken (### marks): one's own marks and what is marked with them, newest first, with the note; for someone
+    else only her shared marks, without notes %>
+<% content_for :header_tags do %><%= stylesheet_link_tag 'gk_tags', plugin: 'gk_tags' %><% end %>
+<h2><%= @own ? l(:label_gk_tags_my_marks) : l(:label_gk_tags_marks_of, name: @owner.name) %></h2>
+<p><%= link_to_unless params[:mark_id].blank?, l(:label_all), gk_tags_marks_path(user_id: (@own ? nil : @owner.id)) %>
+  <% @marks.each do |m| %>&middot; <%= link_to_unless params[:mark_id].to_s == m.id.to_s, m.label, gk_tags_marks_path(mark_id: m.id, user_id: (@own ? nil : @owner.id)) %><% end %></p>
+<%# One's own marks and Lägg till sit in the box above the list, minimized, open while one has no marks %>
+<% if @own %>
+<% own_box = capture do %>
+  <% @marks.each do |m| %>
+    <%= form_tag gk_tags_update_mark_path(m), method: :post, class: 'gk-tags-mark-row' do %>
+      <%= text_field_tag 'name', m.label, size: 24, id: nil %> <%= gk_gui_stuff_category_picker('category', m.category, text: false) %>
+      <label class="inline"><%= check_box_tag 'shared', '1', m.shared, id: nil %> <%= l(:label_gk_tags_shared) %></label>
+      <%= submit_tag l(:button_save), name: nil %>
+      <% unless m.key == 'highlight' %>
+        <%= link_to sprite_icon('del', l(:button_delete)), gk_tags_delete_mark_path(m), method: :post, class: 'icon icon-del',
+                    data: gk_gui_stuff_confirm_data(l(:text_gk_tags_delete_mark_confirm, mark: m.label)) %>
+      <% end %>
+    <% end %>
+  <% end %>
+  <%= form_tag gk_tags_create_mark_path, method: :post, class: 'gk-tags-mark-row' do %>
+    <%= text_field_tag 'name', '', size: 24, placeholder: l(:label_gk_tags_new_mark), required: true, id: nil %> <%= gk_gui_stuff_category_picker('category', nil, text: false) %>
+    <label class="inline"><%= check_box_tag 'shared', '1', false, id: nil %> <%= l(:label_gk_tags_shared) %></label>
+    <%= submit_tag l(:button_add), name: nil %>
+  <% end %>
+  <p class="info"><%= l(:text_gk_tags_marks) %></p>
+<% end %>
+<% title = "#{l(:label_gk_tags_own_marks)} (#{@marks.size})" %>
+<%= gk_gui_stuff_choices_box('tags.own_marks', title, open: @marks.empty?) { own_box } %>
+<% end %>
+<% if @taggings.empty? %><p class="nodata"><%= l(:label_no_data) %></p><% else %>
+<table class="list gk-tags-marked">
+  <thead><tr><th><%= l(:label_gk_tags_mark) %></th><th><%= l(:label_issue) %></th><th><%= l(:label_gk_tags_what) %></th><th><%= l(:label_gk_tags_marked_at) %></th></tr></thead>
+  <tbody>
+  <% @taggings.each do |t| %>
+    <% issue = t.issue %>
+    <tr><td class="mark"><%= gk_tags_mark_pill(t, remove: (@own && issue ? gk_tags_unmark_path(issue, tagging_id: t.id) : nil)) %></td><td class="subject"><%= link_to_issue issue, truncate: 50 %></td>
+      <td class="text"><% if t.taggable_type == 'Journal' && (j = t.taggable) %>
+            <%= link_to l(:label_gk_tags_note_n, n: j.indice || j.id), issue_path(issue, anchor: "change-#{j.id}") %>
+            <span class="gk-tags-muted"><%= j.notes.to_s.truncate(120) %></span>
+          <% else %><%= l(:label_issue) %><% end %></td>
+      <td class="created_on"><%= format_time(t.created_at) %></td></tr>
+  <% end %>
+  </tbody>
+</table>
+<% end %>
+

@@ -1,0 +1,29 @@
+<%# The sharing box: the current focus and the history separately, each with the manager, groups (Redmine
+    groups and people groups) and single users. people has no picker of recipients to reuse, so plain multiple
+    selects. The defaults (current to the manager, history to nobody) hold until the person saves. %>
+<% names = { 'current' => :label_gk_tags_share_current, 'history' => :label_gk_tags_share_history } %>
+<%= form_tag gk_tags_focus_share_path, method: :post, class: 'gk-tags-share' do %>
+<fieldset class="box">
+  <legend><%= l(:label_gk_tags_share) %></legend>
+  <p class="gk-tags-intro"><%= l(:text_gk_tags_share) %></p>
+  <div class="gk-tags-share-scopes">
+  <% GkTags::FocusSharing::SCOPES.each do |scope| %>
+    <% have = shares[scope] %>
+    <fieldset class="gk-tags-share-scope">
+      <legend><%= l(names[scope]) %></legend>
+      <p><label><%= check_box_tag "share[#{scope}][manager]", '1', have.include?(['manager', nil]), id: "gk-tags-share-#{scope}-manager" %>
+        <%= l(:label_gk_tags_share_manager) %></label>
+        <% if GkTags::FocusSharing.manager_key.blank? %><em class="info"><%= l(:text_gk_tags_no_manager) %></em><% end %></p>
+      <% [%w[group label_gk_tags_share_groups], %w[people_group label_gk_tags_share_people_groups], %w[user label_gk_tags_share_users]].each do |kind, label| %>
+        <% next if choices[kind].empty? %>
+        <p><label for="gk-tags-share-<%= scope %>-<%= kind %>"><%= l(label) %></label><br>
+          <%= hidden_field_tag "share[#{scope}][#{kind}_ids][]", '', id: nil %>
+          <%= select_tag "share[#{scope}][#{kind}_ids][]", options_for_select(choices[kind], have.select { |k, _| k == kind }.map(&:last)),
+                         multiple: true, size: [[choices[kind].size, 2].max, 6].min, id: "gk-tags-share-#{scope}-#{kind}" %></p>
+      <% end %>
+    </fieldset>
+  <% end %>
+  </div>
+  <p><%= submit_tag l(:button_save), name: nil %></p>
+</fieldset>
+<% end %>

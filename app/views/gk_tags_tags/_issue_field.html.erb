@@ -1,0 +1,13 @@
+<%# The tag field in the issue form (### taggables): gui_stuff's chooser with several choices, the tags as
+    pills; a name that is no tag yet is added as a pill with "ny" for whoever may create free tags and made when the
+    issue is saved; for anyone else a quiet row says there is none. The blank before the list sends the field when
+    every tag is taken away. %>
+<% if GkTags::Access.tag?(issue) %>
+<% value = issue.instance_variable_get(:@gk_tags_input) || issue.gk_tag_list %>
+<% create = GkTags::Access.create_free?(issue.project) %>
+<p class="gk-tags-field-row"><label for="issue_gk_tag_list"><%= l(:label_gk_tags_tags) %></label>
+  <%= hidden_field_tag 'issue[gk_tag_list][]', '', id: nil %>
+  <%= select_tag 'issue[gk_tag_list][]', gk_tags_select_options(value), multiple: true, id: 'issue_gk_tag_list', 'aria-label': l(:label_gk_tags_tags),
+                                                                       data: gk_tags_select_data(create) %>
+  <em class="info"><%= l(create ? :text_gk_tags_field : :text_gk_tags_field_no_new) %></em></p>
+<% end %>

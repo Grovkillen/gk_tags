@@ -1,0 +1,27 @@
+<%# The box Taggar in a list's sidebar (GkTags::Sidebar). Form C: each tag type is a group with an edge in
+    its category and its name as the heading (not a pill: a type is not a filter), the tags flowing on rows, the count
+    in the pill. Over the limit gk_tags.js turns it into form D (a row per tag with a bar, search, sorting, the top per
+    type and Visa alla); without the script the box stays in form C. A pill filters the list, a chosen one takes the
+    tag away again. %>
+<% texts = { search: l(:label_gk_tags_sidebar_search), sort: l(:label_gk_tags_sidebar_sort), by_count: l(:label_gk_tags_sidebar_sort_count),
+             by_name: l(:label_gk_tags_sidebar_sort_name), all: l(:label_gk_tags_sidebar_all, count: '%{count}'), fewer: l(:label_gk_tags_sidebar_fewer),
+             none: l(:label_gk_tags_sidebar_no_match), scale: l(:text_gk_tags_sidebar_scale) } %>
+<div class="gk-tags-sidebar" id="gk-tags-sidebar" data-gk-tags-limit="<%= limit %>" data-gk-tags-top="<%= top %>" data-gk-tags-texts="<%= texts.to_json %>">
+  <h3><%= l(:label_gk_tags_tags) %></h3>
+  <div class="gk-tags-sb-groups">
+    <% groups.each_with_index do |(type, list), i| %>
+      <% body_id = "gk-tags-sb-#{type&.key || 'none'}" %>
+      <section class="gk-tags-sb-type <%= type ? gk_tags_category_class(type.category) : 'gk-tags-sb-notype' %>" data-gk-tags-type="<%= type&.key || '-' %>">
+        <h4 class="gk-tags-sb-head">
+          <button type="button" class="gk-tags-sb-toggle" aria-expanded="true" aria-controls="<%= body_id %>" title="<%= type&.description %>">
+            <%= sprite_icon('angle-down') %><span class="gk-tags-sb-type-name"><%= type ? safe_join([gk_tags_type_icon(type), type.name].reject(&:blank?), ' ') : l(:label_gk_tags_untyped) %></span>
+            <span class="gk-tags-sb-type-count" title="<%= l(:text_gk_tags_sidebar_type_count, count: list.size) %>"><%= list.size %></span>
+          </button>
+        </h4>
+        <ul class="gk-tags-sb-list" id="<%= body_id %>">
+          <% list.each do |tag, n| %><%= render partial: 'gk_tags_sidebar/row', locals: { tag: tag, n: n, chosen: chosen, link: link } %><% end %>
+        </ul>
+      </section>
+    <% end %>
+  </div>
+</div>

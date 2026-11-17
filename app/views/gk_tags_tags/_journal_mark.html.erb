@@ -1,0 +1,8 @@
+<%# A note's marks the viewer may see, and a way to mark it (### marks: anteckningar) %>
+<% issue = journal.journalized %>
+<% if journal.notes.present? && issue.is_a?(Issue) && GkTags::Personal.with_surface(:pills).any? && GkTags::Access.personal?(issue) %>
+<div class="gk-tags-journal">
+  <% GkTags::Personal.on(journal).each do |m| %><%= gk_tags_mark_pill(m, remove: gk_tags_unmark_path(issue, tagging_id: m.id)) %> <% end %>
+  <%= render partial: 'gk_tags_tags/mark_form', locals: { issue: issue, journal: journal } %>
+</div>
+<% end %>
